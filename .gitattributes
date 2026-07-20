@@ -1,0 +1,12 @@
+# Windows 전용 도구이므로 체크아웃 시 줄바꿈을 CRLF 로 통일한다.
+# Windows-only tool: normalize to CRLF on checkout.
+* text=auto eol=crlf
+
+# .ps1 은 UTF-8 BOM 으로 저장돼 있다 (한글이 PowerShell 5.1 에서 깨지지 않도록).
+# git 이 인코딩을 건드리지 않게 텍스트로만 다룬다.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary

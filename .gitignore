@@ -1,0 +1,18 @@
+# 사용자가 넣은 배경화면 이미지는 커밋하지 않는다 (용량 + 저작권).
+# 폴더 구조는 .gitkeep 으로만 남긴다.
+images/*
+!images/.gitkeep
+
+# 캐시와 설정은 %LOCALAPPDATA%\MyWallpaper\ 에 있으므로 원래 여기 없지만,
+# 경로를 바꿔 쓰는 경우를 대비해 막아둔다.
+thumbcache/
+composed/
+settings.json
+
+# 개발 중 만들어지는 임시 캡처 스크립트
+_shot*.ps1
+_probe*.ps1
+
+# Windows
+Thumbs.db
+desktop.ini
