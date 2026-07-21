@@ -77,6 +77,18 @@ $form.FormBorderStyle = 'FixedSingle'
 $form.MaximizeBox     = $false
 $form.Font            = Get-UIFont 9
 
+# 창 제목 표시줄과 작업 표시줄에 프로젝트 아이콘을 사용한다.
+$appIcon = $null
+$iconPath = Join-Path $PSScriptRoot 'assets\icon.ico'
+if (Test-Path -LiteralPath $iconPath) {
+    try {
+        $appIcon  = [System.Drawing.Icon]::new($iconPath)
+        $form.Icon = $appIcon
+    } catch {
+        if ($appIcon) { $appIcon.Dispose(); $appIcon = $null }
+    }
+}
+
 $LH = [System.Windows.Forms.TextRenderer]::MeasureText('Ag가', $form.Font).Height + (Sc 4)
 
 function BtnW { param([string]$Text, [int]$MinPx = 0)
@@ -273,7 +285,8 @@ $onPick = {
     $mon    = Get-Mon $label
     $picked = Show-ImagePicker -Monitor $mon -Folder $script:ImageFolder `
                                -FitMode $fitKeys[$cboFit.SelectedIndex] `
-                               -Current $state[$label] -InUse $state -Scale $Scale
+                               -Current $state[$label] -InUse $state -Scale $Scale `
+                               -Icon $appIcon
     if ($picked) {
         $state[$label] = $picked
         Update-Panel -Label $label
@@ -351,6 +364,9 @@ $btnApply.Add_Click({
 })
 
 $btnClose.Add_Click({ $form.Close() })
-$form.Add_FormClosed({ foreach ($p in $pics.Values) { if ($p.Image) { $p.Image.Dispose() } } })
+$form.Add_FormClosed({
+    foreach ($p in $pics.Values) { if ($p.Image) { $p.Image.Dispose() } }
+    if ($appIcon) { $appIcon.Dispose() }
+})
 
 [void]$form.ShowDialog()
