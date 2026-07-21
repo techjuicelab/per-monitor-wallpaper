@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/icon.png" alt="Per-Monitor Wallpaper icon" width="160">
+</p>
+
 # Per-Monitor Wallpaper
 
 **모니터마다 다른 배경화면을, 잘리지 않게.**
@@ -139,6 +143,9 @@ Wallpaper.bat           GUI 실행
 Wallpaper-GUI.ps1
 Set-Wallpaper.bat       명령줄 실행
 Set-Wallpaper.ps1
+assets/
+  icon.png              README 아이콘 (투명 배경)
+  icon.ico              Windows 앱 아이콘
 images/                 기본 이미지 폴더 (GUI 에서 변경 가능)
 lib/
   Lang.ps1              UI 문구 (ko / en)

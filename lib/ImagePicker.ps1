@@ -31,7 +31,8 @@ function Show-ImagePicker {
         [string]$FitMode = 'Auto',
         [string]$Current,                           # 지금 이 모니터에 걸린 이미지
         [hashtable]$InUse = @{},                    # 라벨 -> 경로 (다른 모니터에서 쓰는 중 표시)
-        [double]$Scale = 1.0
+        [double]$Scale = 1.0,
+        [System.Drawing.Icon]$Icon
     )
 
     Add-Type -AssemblyName System.Windows.Forms
@@ -64,6 +65,7 @@ function Show-ImagePicker {
     $dlg.StartPosition   = 'CenterParent'
     $dlg.KeyPreview      = $true
     $dlg.Font            = Get-UIFont 9
+    if ($Icon) { $dlg.Icon = $Icon }
 
     $LH   = [System.Windows.Forms.TextRenderer]::MeasureText('Ag가', $dlg.Font).Height + (PkSc 4)
     $BTNH = PkSc 28
