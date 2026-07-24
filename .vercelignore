@@ -1,0 +1,6 @@
+.git/
+lib/
+docs/
+images/
+*.ps1
+*.bat
