@@ -54,6 +54,13 @@ $script:Strings = [ordered]@{
     'main.noMonitors' = '연결된 모니터를 찾지 못했습니다.'
     'main.errorTitle' = '오류'
     'main.pickFolder' = '배경화면 이미지가 들어있는 폴더를 고르세요'
+    'main.update'     = '업데이트 확인'
+    'main.updChecking'= '업데이트 확인 중...'
+    'main.updLatest'  = '최신 버전입니다 (v{0})'
+    'main.updFound'   = '새 버전 v{0} — 받는 중, 다음 실행 때 적용됩니다'
+    'main.updAvail'   = '새 버전 v{0} 이 있습니다'
+    'main.updGit'     = '새 버전 v{0} — git pull 로 받으세요'
+    'main.updFail'    = '업데이트 확인 실패 — 네트워크를 확인하세요'
 
     # --- 이미지 고르기 창 ---
     'pick.title'      = '이미지 고르기'
@@ -124,6 +131,13 @@ $script:Strings = [ordered]@{
     'main.noMonitors' = 'No displays found.'
     'main.errorTitle' = 'Error'
     'main.pickFolder' = 'Choose the folder holding your wallpaper images'
+    'main.update'     = 'Check updates'
+    'main.updChecking'= 'Checking for updates...'
+    'main.updLatest'  = 'Up to date (v{0})'
+    'main.updFound'   = 'v{0} available — downloading, applies on next launch'
+    'main.updAvail'   = 'v{0} is available'
+    'main.updGit'     = 'v{0} available — run git pull'
+    'main.updFail'    = 'Update check failed — check your network'
 
     # --- picker ---
     'pick.title'      = 'Choose Image'

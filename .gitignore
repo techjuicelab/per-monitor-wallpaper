@@ -13,6 +13,9 @@ settings.json
 _shot*.ps1
 _probe*.ps1
 
+# 자동 업데이트 로그 (원래 설치 폴더에 생기지만, clone 에서 실수로 실행한 경우 대비)
+update.log
+
 # Windows
 Thumbs.db
 desktop.ini

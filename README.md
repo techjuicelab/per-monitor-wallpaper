@@ -7,7 +7,7 @@
 **모니터마다 다른 배경화면을, 잘리지 않게.**
 Set a different wallpaper on each monitor — without cropping.
 
-Windows 10/11 · PowerShell 7 · 설치 불필요 (스크립트만)
+Windows 10/11 · PowerShell 7 · 스크립트만 (설치는 선택 — 설치하면 자동 업데이트)
 
 ![Main window](docs/main-ko.png)
 
@@ -54,15 +54,58 @@ display resolution: the same picture blurred and darkened as a backdrop, the ful
 
 ## 설치 / Install
 
+PowerShell 7 이 필요합니다. 없으면:
+
+```powershell
+winget install Microsoft.PowerShell
+```
+
+두 가지 방법이 있습니다. 기능은 같습니다.
+
+### A. 그냥 실행 (설치 없이) / Run in place
+
 ```
 git clone https://github.com/techjuicelab/per-monitor-wallpaper.git
 cd per-monitor-wallpaper
 ```
 
-PowerShell 7 이 필요합니다. 없으면:
+받은 폴더에서 바로 `Wallpaper.bat` 을 실행합니다. 업데이트는 `git pull`.
+Clone and run — updates via `git pull`, same as before.
+
+### B. 설치 + 자동 업데이트 / Install with auto-update
+
+clone 한 폴더에서 한 번만:
 
 ```powershell
-winget install Microsoft.PowerShell
+pwsh -ExecutionPolicy Bypass -File .\Install.ps1
+```
+
+`Install.ps1` 이 하는 일 (관리자 권한 불필요, 다시 실행해도 안전):
+
+- 앱을 `%LOCALAPPDATA%\Programs\PerMonitorWallpaper` 로 복사
+- 시작 메뉴에 **Wallpaper-GUI** 바로가기 생성
+- 예약 작업 `PerMonitorWallpaper Update` 등록 (매일 12:30 + 로그온, 숨김 창) —
+  `Update.ps1` 이 설치본의 `VERSION` 을 main 브랜치와 비교해서, 다르면 새 버전을
+  받아 조용히 교체합니다
+
+사용자 설정·캐시는 `%LOCALAPPDATA%\MyWallpaper\` (설치 폴더 밖)에 있어 업데이트해도
+그대로 남습니다. 업데이트 기록은 설치 폴더의 `update.log` (마지막 200줄).
+
+Copies the app to `%LOCALAPPDATA%\Programs\PerMonitorWallpaper`, adds a Start Menu
+shortcut, and registers a user-level scheduled task (daily + logon) that silently
+updates the app whenever `VERSION` on main changes. Settings live outside the
+install dir and survive updates. No admin rights needed; safe to re-run.
+
+**배포 규칙 / Release rule** — `VERSION` (저장소 루트, 한 줄) 이 업데이터의 비교
+기준입니다. main 에 푸시하기 전에 이 파일을 올리면 그게 곧 배포입니다.
+Bumping `VERSION` on main *is* the release.
+
+제거 / Uninstall:
+
+```powershell
+Unregister-ScheduledTask -TaskName 'PerMonitorWallpaper Update' -Confirm:$false
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\Programs\PerMonitorWallpaper"
+Remove-Item -Force "$([Environment]::GetFolderPath('Programs'))\Wallpaper-GUI.lnk"
 ```
 
 ---
@@ -86,6 +129,9 @@ winget install Microsoft.PowerShell
 - 검색 / 정렬(최신순·이름순·크기순) / 새로고침 / 폴더 밖 이미지 찾아보기
 
 이미지 폴더는 **`폴더...`** 버튼으로 바꿉니다. 선택은 기억됩니다.
+
+**`업데이트 확인`** 버튼은 main 의 `VERSION` 과 비교해 알려줍니다. 설치본(방법 B)이면
+새 버전을 백그라운드로 받아 다음 실행 때 적용되고, clone(방법 A)이면 `git pull` 안내만 합니다.
 
 ### 명령줄 / Command line
 
@@ -143,6 +189,9 @@ Wallpaper.bat           GUI 실행
 Wallpaper-GUI.ps1
 Set-Wallpaper.bat       명령줄 실행
 Set-Wallpaper.ps1
+Install.ps1             설치 (선택) — 복사 + 바로가기 + 자동 업데이트 예약 작업
+Update.ps1              무인 업데이터 (예약 작업이 실행, 로그: 설치 폴더 update.log)
+VERSION                 배포 기준 버전 — main 에서 올리면 그게 곧 배포
 assets/
   icon.png              README 아이콘 (투명 배경)
   icon.ico              Windows 앱 아이콘

@@ -47,6 +47,11 @@ function Sc { param([double]$v) return [int][Math]::Round($v * $Scale) }
 
 $ImageFolder = Get-ImageFolder -AppRoot $PSScriptRoot
 
+# 이벤트 핸들러 안에서 쓰려고 잡아둔다 — $PSScriptRoot 는 나중에 호출되는
+# 스크립트블록 안에서 비어 있을 수 있다.
+$AppRoot          = $PSScriptRoot
+$UpdateVersionUrl = 'https://raw.githubusercontent.com/techjuicelab/per-monitor-wallpaper/main/VERSION'
+
 $monitors = @(Get-WallpaperMonitor)
 if ($monitors.Count -eq 0) {
     [void][System.Windows.Forms.MessageBox]::Show((T 'main.noMonitors'), (T 'main.errorTitle'), 'OK', 'Error')
@@ -125,12 +130,13 @@ $cboFitW    = ($fitLabels | ForEach-Object {
 $fitLblW    = [System.Windows.Forms.TextRenderer]::MeasureText((T 'main.fit'), $form.Font).Width + (Sc 10)
 $randomW    = BtnW (T 'main.random') (Sc 76)
 $folderW    = BtnW (T 'main.folder') (Sc 76)
+$updateW    = BtnW (T 'main.update') (Sc 76)
 $applyW     = BtnW (T 'main.apply')  (Sc 88)
 $closeW     = BtnW (T 'main.close')  (Sc 88)
 $STATUS_MIN = Sc 190      # 가장 긴 안내 문구가 읽히는 최소 폭
 
-$rowW = $MARGIN + $fitLblW + $cboFitW + (Sc 10) + $randomW + (Sc 8) + $folderW + (Sc 12) +
-        $STATUS_MIN + (Sc 10) + $applyW + (Sc 8) + $closeW + $MARGIN
+$rowW = $MARGIN + $fitLblW + $cboFitW + (Sc 10) + $randomW + (Sc 8) + $folderW + (Sc 8) +
+        $updateW + (Sc 12) + $STATUS_MIN + (Sc 10) + $applyW + (Sc 8) + $closeW + $MARGIN
 
 $clientW = [int][Math]::Max(($stripW + $MARGIN * 2), $rowW)
 
@@ -236,7 +242,14 @@ $btnFolder.Text     = T 'main.folder'
 $btnFolder.Size     = New-Object System.Drawing.Size($folderW, $BTN_H)
 $btnFolder.Location = New-Object System.Drawing.Point($cursorX, ($rowY - (Sc 1)))
 $form.Controls.Add($btnFolder)
-$cursorX += $folderW + (Sc 12)
+$cursorX += $folderW + (Sc 8)
+
+$btnUpdate          = New-Object System.Windows.Forms.Button
+$btnUpdate.Text     = T 'main.update'
+$btnUpdate.Size     = New-Object System.Drawing.Size($updateW, $BTN_H)
+$btnUpdate.Location = New-Object System.Drawing.Point($cursorX, ($rowY - (Sc 1)))
+$form.Controls.Add($btnUpdate)
+$cursorX += $updateW + (Sc 12)
 
 $btnClose          = New-Object System.Windows.Forms.Button
 $btnClose.Text     = T 'main.close'
@@ -327,6 +340,45 @@ $btnRandom.Add_Click({
         Update-Panel -Label $monitors[$i].Label
     }
     Set-Status (T 'main.pending')
+})
+
+$btnUpdate.Add_Click({
+    # VERSION 만 비교해서 알려주고, 실제 교체는 Update.ps1 에 맡긴다.
+    # (Install.ps1 로 설치했다면 예약 작업이 어차피 매일 확인한다 — 이 버튼은 즉시 확인용.)
+    Set-Status (T 'main.updChecking')
+    [System.Windows.Forms.Application]::DoEvents()
+
+    $local   = '0'
+    $verPath = Join-Path $script:AppRoot 'VERSION'
+    if (Test-Path -LiteralPath $verPath) {
+        try { $local = (Get-Content -LiteralPath $verPath -Raw -Encoding UTF8).Trim() } catch { }
+    }
+    try {
+        $remote = ([string](Invoke-RestMethod -Uri $script:UpdateVersionUrl -TimeoutSec 10)).Trim()
+    } catch {
+        Set-Status (T 'main.updFail') 'Firebrick'; return
+    }
+    # 버전 문자열답지 않으면(프록시 오류 페이지, 캡티브 포털 등) 실패로 처리 — Update.ps1 과 같은 검사
+    if ($remote -notmatch '^\d+(\.\d+)*([\-+][0-9A-Za-z\.\-]+)?$') {
+        Set-Status (T 'main.updFail') 'Firebrick'; return
+    }
+    if ($remote -eq $local)    { Set-Status (T 'main.updLatest' $local) 'ForestGreen'; return }
+
+    # clone 은 git 이 관리한다 — 덮어쓰면 로컬 작업이 날아갈 수 있어 안내만 한다
+    if (Test-Path -LiteralPath (Join-Path $script:AppRoot '.git')) {
+        Set-Status (T 'main.updGit' $remote) 'DarkOrange'; return
+    }
+
+    $updater = Join-Path $script:AppRoot 'Update.ps1'
+    if (Test-Path -LiteralPath $updater) {
+        # 백그라운드로 받게 하고 GUI 는 계속 쓴다. 파일이 잠겨 있으면 Update.ps1 이
+        # 조용히 물러나고, 예약 작업이 다음 주기에 다시 시도한다.
+        Start-Process -FilePath ([Environment]::ProcessPath) -WindowStyle Hidden -ArgumentList @(
+            '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', $updater)
+        Set-Status (T 'main.updFound' $remote) 'DarkOrange'
+    } else {
+        Set-Status (T 'main.updAvail' $remote) 'DarkOrange'
+    }
 })
 
 $btnApply.Add_Click({
